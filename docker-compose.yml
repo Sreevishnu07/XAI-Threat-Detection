@@ -3,5 +3,5 @@ services:
     build:
       context: .
       dockerfile: app/Dockerfile
-  ports:
+    ports:
     - "8000:8000"
