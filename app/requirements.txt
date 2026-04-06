@@ -3,6 +3,6 @@ uvicorn
 torch
 torchvision
 pillow
-pytest
+python-multipart
 grad-cam
 opencv-python-headless
