@@ -4,3 +4,4 @@ torch
 torchvision
 pillow
 pytest
+grad-cam
