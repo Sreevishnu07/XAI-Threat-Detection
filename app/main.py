@@ -7,6 +7,7 @@ from app.model.model import load_model, preprocess_image, predict
 
 app = FastAPI()
 
+# Enable CORS (safe for now)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,6 +16,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Load model ONCE
 model = load_model()
 
 
@@ -36,15 +38,19 @@ async def predict_image(file: UploadFile = File(...)):
         try:
             image = Image.open(io.BytesIO(contents)).convert("RGB")
         except UnidentifiedImageError:
-            raise HTTPException(status_code=400, detail="Invalid image")
+            raise HTTPException(status_code=400, detail="Invalid image file")
 
         tensor = preprocess_image(image)
+
         result = predict(model, tensor)
 
         return {
             "filename": file.filename,
             "prediction": result
         }
+
+    except HTTPException as e:
+        raise e
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
