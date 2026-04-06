@@ -5,3 +5,4 @@ torchvision
 pillow
 pytest
 grad-cam
+opencv-python-headless
