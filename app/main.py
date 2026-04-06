@@ -27,6 +27,7 @@ model = load_model()
 def home():
     return {"message": "API running"}
 
+
 @app.post("/predict")
 async def predict_image(file: UploadFile = File(...)):
     try:
@@ -79,14 +80,15 @@ async def predict_xai(file: UploadFile = File(...)):
         image_resized = image.resize((224, 224))
         image_np = np.array(image_resized) / 255.0
 
-        cam_image = generate_gradcam(model, tensor, image_np)
+        cam_image, focus_score = generate_gradcam(model, tensor, image_np)
 
         _, buffer = cv2.imencode(".jpg", cam_image)
         cam_base64 = base64.b64encode(buffer).decode("utf-8")
 
         return {
             "prediction": result,
-            "gradcam": cam_base64
+            "gradcam": cam_base64,
+            "focus_score": round(focus_score, 4)
         }
 
     except HTTPException as e:
