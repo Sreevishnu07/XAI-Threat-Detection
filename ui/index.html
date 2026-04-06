@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>XAI Demo</title>
+</head>
+<body>
+
+<h2>Upload Image</h2>
+
+<input type="file" id="fileInput">
+<button onclick="upload()">Predict</button>
+
+<h3 id="result"></h3>
+<img id="cam" width="300"/>
+
+<script>
+async function upload() {
+    const file = document.getElementById("fileInput").files[0];
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch("http://localhost:8000/predict-xai", {
+        method: "POST",
+        body: formData
+    });
+
+    const data = await res.json();
+
+    document.getElementById("result").innerText =
+        data.prediction.label + " (" + data.prediction.confidence + ")";
+
+    document.getElementById("cam").src =
+        "data:image/jpeg;base64," + data.gradcam;
+}
+</script>
+
+</body>
+</html>
