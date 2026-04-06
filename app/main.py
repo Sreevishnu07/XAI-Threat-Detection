@@ -1,13 +1,12 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 import io
 
 from app.model.model import load_model, preprocess_image, predict
 
 app = FastAPI()
 
-# OPTIONAL but helps avoid weird issues
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -27,16 +26,19 @@ def home():
 @app.post("/predict")
 async def predict_image(file: UploadFile = File(...)):
     try:
+        if not file.content_type.startswith("image/"):
+            raise HTTPException(status_code=400, detail="File must be an image")
+
         contents = await file.read()
+        if not contents:
+            raise HTTPException(status_code=400, detail="Empty file")
 
-        # 🔥 DEBUG CHECK
-        if contents is None or len(contents) == 0:
-            raise HTTPException(status_code=400, detail="Empty file received")
-
-        image = Image.open(io.BytesIO(contents)).convert("RGB")
+        try:
+            image = Image.open(io.BytesIO(contents)).convert("RGB")
+        except UnidentifiedImageError:
+            raise HTTPException(status_code=400, detail="Invalid image")
 
         tensor = preprocess_image(image)
-
         result = predict(model, tensor)
 
         return {
@@ -45,4 +47,4 @@ async def predict_image(file: UploadFile = File(...)):
         }
 
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
