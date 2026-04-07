@@ -10,6 +10,8 @@ import base64
 from app.model.model import load_model, preprocess_image, predict
 from app.model.gradcam import generate_gradcam
 
+from app.model.threat import compute_threat_score, get_threat_level
+
 app = FastAPI()
 
 app.add_middleware(
@@ -76,11 +78,15 @@ async def predict_xai(file: UploadFile = File(...)):
         tensor = preprocess_image(image)
 
         result = predict(model, tensor)
+        confidence = result["confidence"]
 
         image_resized = image.resize((224, 224))
         image_np = np.array(image_resized) / 255.0
 
         cam_image, focus_score = generate_gradcam(model, tensor, image_np)
+
+        threat_score = compute_threat_score(confidence, focus_score)
+        threat_level = get_threat_level(threat_score)
 
         _, buffer = cv2.imencode(".jpg", cam_image)
         cam_base64 = base64.b64encode(buffer).decode("utf-8")
@@ -88,7 +94,10 @@ async def predict_xai(file: UploadFile = File(...)):
         return {
             "prediction": result,
             "gradcam": cam_base64,
-            "focus_score": round(focus_score, 4)
+            "focus_score": round(focus_score, 4),
+
+            "threat_score": round(threat_score, 4),
+            "threat_level": threat_level
         }
 
     except HTTPException as e:
