@@ -1,39 +1,132 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>XAI Demo</title>
+    <title>XAI Threat Detection</title>
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+            background: #f5f5f5;
+        }
+
+        .container {
+            margin-top: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            margin: auto;
+            width: 400px;
+            border-radius: 12px;
+            box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .badge {
+            font-size: 20px;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 8px;
+            color: white;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .safe { background-color: green; }
+        .medium { background-color: orange; }
+        .high { background-color: red; }
+
+        .bar-container {
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .bar {
+            height: 20px;
+            border-radius: 10px;
+            width: 0%;
+        }
+
+        img {
+            margin-top: 15px;
+            max-width: 100%;
+        }
+    </style>
 </head>
+
 <body>
+    <div class="container">
+        <div class="card">
+            <h2>XAI Threat Detection</h2>
 
-<h2>Upload Image</h2>
+            <input type="file" id="fileInput">
+            <br><br>
+            <button onclick="uploadImage()">Analyze</button>
 
-<input type="file" id="fileInput">
-<button onclick="upload()">Predict</button>
+            <h3 id="label"></h3>
+            <p id="confidence"></p>
+            <p id="focus"></p>
 
-<h3 id="result"></h3>
-<img id="cam" width="300"/>
+            <div id="badge" class="badge"></div>
 
-<script>
-async function upload() {
-    const file = document.getElementById("fileInput").files[0];
+            <div class="bar-container">
+                <div id="threatBar" class="bar"></div>
+            </div>
 
-    const formData = new FormData();
-    formData.append("file", file);
+            <img id="gradcam" />
+        </div>
+    </div>
 
-    const res = await fetch("http://localhost:8000/predict-xai", {
-        method: "POST",
-        body: formData
-    });
+    <script>
+        async function uploadImage() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
 
-    const data = await res.json();
+            if (!file) {
+                alert("Please select an image");
+                return;
+            }
 
-    document.getElementById("result").innerText =
-        data.prediction.label + " (" + data.prediction.confidence + ")";
+            const formData = new FormData();
+            formData.append("file", file);
 
-    document.getElementById("cam").src =
-        "data:image/jpeg;base64," + data.gradcam;
-}
-</script>
+            const response = await fetch("http://localhost:8000/predict-xai", {
+                method: "POST",
+                body: formData
+            });
 
+            const data = await response.json();
+
+            document.getElementById("label").innerText =
+                "Label: " + data.prediction.label;
+
+            document.getElementById("confidence").innerText =
+                "Confidence: " + data.prediction.confidence;
+
+            document.getElementById("focus").innerText =
+                "Focus Score: " + data.focus_score;
+
+            const badge = document.getElementById("badge");
+            badge.innerText = "THREAT: " + data.threat_level;
+
+            badge.className = "badge";
+            if (data.threat_level === "HIGH") badge.classList.add("high");
+            else if (data.threat_level === "MEDIUM") badge.classList.add("medium");
+            else badge.classList.add("safe");
+
+            const bar = document.getElementById("threatBar");
+            const percentage = data.threat_score * 100;
+            bar.style.width = percentage + "%";
+
+            if (data.threat_level === "HIGH") bar.style.background = "red";
+            else if (data.threat_level === "MEDIUM") bar.style.background = "orange";
+            else bar.style.background = "green";
+
+            document.getElementById("gradcam").src =
+                "data:image/jpeg;base64," + data.gradcam;
+        }
+    </script>
 </body>
 </html>
