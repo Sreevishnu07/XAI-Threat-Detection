@@ -5,128 +5,144 @@
     <style>
         body {
             font-family: Arial;
+            background: #0f172a;
+            color: white;
             text-align: center;
-            background: #f5f5f5;
+        }
+
+        h1 {
+            color: #38bdf8;
         }
 
         .container {
             margin-top: 30px;
         }
 
+        input, button {
+            padding: 10px;
+            margin: 10px;
+        }
+
+        button {
+            background: #22c55e;
+            border: none;
+            cursor: pointer;
+        }
+
+        .images {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        img {
+            width: 250px;
+            border-radius: 10px;
+        }
+
         .card {
-            background: white;
+            background: #1e293b;
             padding: 20px;
-            margin: auto;
+            margin: 20px auto;
             width: 400px;
             border-radius: 12px;
-            box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
         }
 
-        .badge {
-            font-size: 20px;
-            font-weight: bold;
-            padding: 10px;
-            border-radius: 8px;
-            color: white;
-            display: inline-block;
-            margin-top: 10px;
-        }
-
-        .safe { background-color: green; }
-        .medium { background-color: orange; }
-        .high { background-color: red; }
-
-        .bar-container {
-            width: 100%;
-            background-color: #ddd;
-            border-radius: 10px;
-            margin-top: 15px;
-        }
+        .high { color: red; }
+        .medium { color: orange; }
+        .safe { color: lightgreen; }
 
         .bar {
             height: 20px;
             border-radius: 10px;
-            width: 0%;
+            background: #334155;
+            margin-top: 10px;
         }
 
-        img {
-            margin-top: 15px;
-            max-width: 100%;
+        .fill {
+            height: 100%;
+            border-radius: 10px;
         }
     </style>
 </head>
-
 <body>
-    <div class="container">
-        <div class="card">
-            <h2>XAI Threat Detection</h2>
 
-            <input type="file" id="fileInput">
-            <br><br>
-            <button onclick="uploadImage()">Analyze</button>
+<h1>XAI Threat Detection System</h1>
 
-            <h3 id="label"></h3>
-            <p id="confidence"></p>
-            <p id="focus"></p>
+<div class="container">
+    <input type="file" id="fileInput">
+    <button onclick="upload()">Analyze</button>
+</div>
 
-            <div id="badge" class="badge"></div>
-
-            <div class="bar-container">
-                <div id="threatBar" class="bar"></div>
-            </div>
-
-            <img id="gradcam" />
-        </div>
+<div class="images">
+    <div>
+        <h3>Original</h3>
+        <img id="original">
     </div>
 
-    <script>
-        async function uploadImage() {
-            const fileInput = document.getElementById('fileInput');
-            const file = fileInput.files[0];
+    <div>
+        <h3>Grad-CAM</h3>
+        <img id="gradcam">
+    </div>
+</div>
 
-            if (!file) {
-                alert("Please select an image");
-                return;
-            }
+<div class="card" id="result"></div>
 
-            const formData = new FormData();
-            formData.append("file", file);
+<script>
+async function upload() {
+    const file = document.getElementById("fileInput").files[0];
+    if (!file) return alert("Select a file");
 
-            const response = await fetch("http://localhost:8000/predict-xai", {
-                method: "POST",
-                body: formData
-            });
+    document.getElementById("original").src = URL.createObjectURL(file);
 
-            const data = await response.json();
+    const formData = new FormData();
+    formData.append("file", file);
 
-            document.getElementById("label").innerText =
-                "Label: " + data.prediction.label;
+    const res = await fetch("http://localhost:8000/predict-xai", {
+        method: "POST",
+        body: formData
+    });
 
-            document.getElementById("confidence").innerText =
-                "Confidence: " + data.prediction.confidence;
+    const data = await res.json();
 
-            document.getElementById("focus").innerText =
-                "Focus Score: " + data.focus_score;
+    document.getElementById("gradcam").src =
+        "data:image/jpeg;base64," + data.gradcam;
 
-            const badge = document.getElementById("badge");
-            badge.innerText = "THREAT: " + data.threat_level;
+    let levelClass = data.threat_level.toLowerCase();
 
-            badge.className = "badge";
-            if (data.threat_level === "HIGH") badge.classList.add("high");
-            else if (data.threat_level === "MEDIUM") badge.classList.add("medium");
-            else badge.classList.add("safe");
+    let width = data.threat_score * 100;
 
-            const bar = document.getElementById("threatBar");
-            const percentage = data.threat_score * 100;
-            bar.style.width = percentage + "%";
+    document.getElementById("result").innerHTML = `
+        <h2>${data.prediction.label}</h2>
+        <p>Confidence: ${data.prediction.confidence}</p>
 
-            if (data.threat_level === "HIGH") bar.style.background = "red";
-            else if (data.threat_level === "MEDIUM") bar.style.background = "orange";
-            else bar.style.background = "green";
+        <p class="${levelClass}">
+            Threat Level: ${data.threat_level}
+        </p>
 
-            document.getElementById("gradcam").src =
-                "data:image/jpeg;base64," + data.gradcam;
-        }
-    </script>
+        <div class="bar">
+            <div class="fill" style="
+                width:${width}%;
+                background:${getColor(data.threat_score)};
+            "></div>
+        </div>
+
+        <p>Focus Score: ${data.focus_score}</p>
+
+        <h3>Top Predictions</h3>
+        ${data.prediction.top_k.map(p => `
+            <p>${p.label} : ${p.confidence}</p>
+        `).join("")}
+    `;
+}
+
+function getColor(score) {
+    if (score > 0.7) return "red";
+    if (score > 0.4) return "orange";
+    return "green";
+}
+</script>
+
 </body>
 </html>
