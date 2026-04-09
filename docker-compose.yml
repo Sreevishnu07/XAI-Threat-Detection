@@ -1,7 +1,15 @@
 services:
   api:
+    container_name: xai-api
+
     build:
-      context: .
+      context: .          
       dockerfile: app/Dockerfile
+
     ports:
       - "8000:8000"
+
+    volumes:
+      - ./app:/app/app
+
+    restart: always
