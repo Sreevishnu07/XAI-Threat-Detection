@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>XAI Threat Detection</title>
+
     <style>
         body {
             font-family: Arial;
@@ -27,37 +28,42 @@
             background: #22c55e;
             border: none;
             cursor: pointer;
+            font-weight: bold;
         }
 
         .images {
             display: flex;
             justify-content: center;
-            gap: 30px;
+            gap: 40px;
             margin-top: 20px;
         }
 
         img {
-            width: 250px;
-            border-radius: 10px;
+            width: 260px;
+            border-radius: 12px;
+            background: white;
+            padding: 10px;
         }
 
         .card {
             background: #1e293b;
             padding: 20px;
-            margin: 20px auto;
-            width: 400px;
-            border-radius: 12px;
+            margin: 30px auto;
+            width: 420px;
+            border-radius: 15px;
+            text-align: left;
         }
 
-        .high { color: red; }
-        .medium { color: orange; }
-        .safe { color: lightgreen; }
+        .high { color: red; font-weight: bold; }
+        .medium { color: orange; font-weight: bold; }
+        .safe { color: lightgreen; font-weight: bold; }
 
         .bar {
             height: 20px;
             border-radius: 10px;
             background: #334155;
             margin-top: 10px;
+            overflow: hidden;
         }
 
         .fill {
@@ -66,9 +72,10 @@
         }
     </style>
 </head>
+
 <body>
 
-<h1>XAI Threat Detection System</h1>
+<h1>🔍 XAI Threat Detection System</h1>
 
 <div class="container">
     <input type="file" id="fileInput">
@@ -92,49 +99,68 @@
 <script>
 async function upload() {
     const file = document.getElementById("fileInput").files[0];
-    if (!file) return alert("Select a file");
+
+    if (!file) {
+        alert("Select a file first");
+        return;
+    }
 
     document.getElementById("original").src = URL.createObjectURL(file);
 
     const formData = new FormData();
     formData.append("file", file);
 
-    const res = await fetch("http://localhost:8000/predict-xai", {
-        method: "POST",
-        body: formData
-    });
+    try {
+        const res = await fetch("http://localhost:8000/predict-xai", {
+            method: "POST",
+            body: formData
+        });
 
-    const data = await res.json();
+        const data = await res.json();
+        console.log("API RESPONSE:", data);
 
-    document.getElementById("gradcam").src =
-        "data:image/jpeg;base64," + data.gradcam;
+        if (!data || !data.threat_score) {
+            document.getElementById("result").innerHTML =
+                "<p style='color:red;'>Error: No response from backend</p>";
+            return;
+        }
 
-    let levelClass = data.threat_level.toLowerCase();
+        // Show Grad-CAM
+        document.getElementById("gradcam").src =
+            "data:image/jpeg;base64," + data.gradcam;
 
-    let width = data.threat_score * 100;
+        // Threat level class
+        let levelClass = data.threat_level.toLowerCase();
 
-    document.getElementById("result").innerHTML = `
-        <h2>${data.prediction.label}</h2>
-        <p>Confidence: ${data.prediction.confidence}</p>
+        // Bar width
+        let width = data.threat_score * 100;
 
-        <p class="${levelClass}">
-            Threat Level: ${data.threat_level}
-        </p>
+        // Render UI
+        document.getElementById("result").innerHTML = `
+            <h2>${data.prediction.label}</h2>
 
-        <div class="bar">
-            <div class="fill" style="
-                width:${width}%;
-                background:${getColor(data.threat_score)};
-            "></div>
-        </div>
+            <p><b>Confidence:</b> ${data.prediction.confidence}</p>
 
-        <p>Focus Score: ${data.focus_score}</p>
+            <p class="${levelClass}">
+                Threat Level: ${data.threat_level}
+            </p>
 
-        <h3>Top Predictions</h3>
-        ${data.prediction.top_k.map(p => `
-            <p>${p.label} : ${p.confidence}</p>
-        `).join("")}
-    `;
+            <div class="bar">
+                <div class="fill" style="
+                    width:${width}%;
+                    background:${getColor(data.threat_score)};
+                "></div>
+            </div>
+
+            <p><b>Threat Score:</b> ${data.threat_score}</p>
+            <p><b>Focus Score:</b> ${data.focus_score}</p>
+        `;
+
+    } catch (err) {
+        console.error(err);
+        document.getElementById("result").innerHTML =
+            "<p style='color:red;'>Request failed</p>";
+    }
 }
 
 function getColor(score) {
