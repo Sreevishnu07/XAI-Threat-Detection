@@ -9,7 +9,6 @@ import base64
 
 from app.model.model import load_model, preprocess_image, predict
 from app.model.gradcam import generate_gradcam
-
 from app.model.threat import compute_threat_score, get_threat_level
 
 app = FastAPI()
@@ -76,16 +75,18 @@ async def predict_xai(file: UploadFile = File(...)):
             raise HTTPException(status_code=400, detail="Invalid image")
 
         tensor = preprocess_image(image)
-
         result = predict(model, tensor)
+
         confidence = result["confidence"]
+        label = result["label"]  
 
         image_resized = image.resize((224, 224))
         image_np = np.array(image_resized) / 255.0
 
         cam_image, focus_score = generate_gradcam(model, tensor, image_np)
 
-        threat_score = compute_threat_score(confidence, focus_score)
+
+        threat_score = compute_threat_score(confidence, focus_score, label)  # 🔥 FIX 2
         threat_level = get_threat_level(threat_score)
 
         _, buffer = cv2.imencode(".jpg", cam_image)
@@ -95,7 +96,6 @@ async def predict_xai(file: UploadFile = File(...)):
             "prediction": result,
             "gradcam": cam_base64,
             "focus_score": round(focus_score, 4),
-
             "threat_score": round(threat_score, 4),
             "threat_level": threat_level
         }
