@@ -26,40 +26,17 @@ def preprocess_image(image: Image.Image):
     ])
     return transform(image).unsqueeze(0)
 
-def get_top_k_predictions(probs, k=5):
-    top_probs, top_idxs = torch.topk(probs, k)
-
-    results = []
-    for prob, idx in zip(top_probs[0], top_idxs[0]):
-        label = class_idx[str(idx.item())][1]
-        results.append({
-            "label": label,
-            "confidence": prob.item()
-        })
-
-    return results
-
 
 def predict(model, image_tensor):
     with torch.no_grad():
         output = model(image_tensor)
+
         probs = torch.nn.functional.softmax(output, dim=1)
+        confidence, predicted = torch.max(probs, 1)
 
-        # Top-5 predictions
-        top_k = get_top_k_predictions(probs, k=5)
-
-        # Top-1 (for display)
-        top_label = top_k[0]["label"]
-        top_conf = top_k[0]["confidence"]
+        label = class_idx[str(predicted.item())][1]
 
     return {
-        "label": top_label,
-        "confidence": round(top_conf, 4),
-        "top_k": [
-            {
-                "label": item["label"],
-                "confidence": round(item["confidence"], 4)
-            }
-            for item in top_k
-        ]
+        "label": label,
+        "confidence": round(confidence.item(), 4)
     }
