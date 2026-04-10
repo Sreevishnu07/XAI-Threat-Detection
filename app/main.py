@@ -8,7 +8,11 @@ import base64
 
 from app.model.model import load_model, preprocess_image, predict
 from app.model.gradcam import generate_xai_maps
-from app.model.threat import compute_threat_score, get_threat_level
+from app.model.threat import (
+    compute_threat_score,
+    get_threat_level,
+    get_trust_level
+)
 
 app = FastAPI()
 
@@ -22,9 +26,11 @@ app.add_middleware(
 
 model = load_model()
 
+
 @app.get("/")
 def home():
     return {"message": "API running"}
+
 
 @app.post("/predict")
 async def predict_image(file: UploadFile = File(...)):
@@ -55,6 +61,7 @@ async def predict_image(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.post("/predict-xai")
 async def predict_xai(file: UploadFile = File(...)):
     try:
@@ -76,6 +83,7 @@ async def predict_xai(file: UploadFile = File(...)):
         confidence = result["confidence"]
         label = result["label"]
 
+
         image_resized = image.resize((224, 224))
         image_np = np.array(image_resized) / 255.0
 
@@ -86,8 +94,13 @@ async def predict_xai(file: UploadFile = File(...)):
         ig = xai_results["integrated_gradients"]
         focus_scores = xai_results["focus_scores"]
 
-        threat_score = compute_threat_score(confidence, focus_scores, label)
+        threat_score, consistency = compute_threat_score(
+            confidence, focus_scores, label
+        )
+
         threat_level = get_threat_level(threat_score)
+        trust_level = get_trust_level(consistency)
+
 
         def encode(img):
             _, buffer = cv2.imencode(".jpg", img)
@@ -107,7 +120,10 @@ async def predict_xai(file: UploadFile = File(...)):
             },
 
             "threat_score": round(threat_score, 4),
-            "threat_level": threat_level
+            "threat_level": threat_level,
+
+            "consistency": round(consistency, 4),
+            "trust_level": trust_level
         }
 
     except HTTPException as e:
