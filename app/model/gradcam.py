@@ -79,6 +79,8 @@ def generate_xai_maps(model, input_tensor, image_np):
 
     ig_map = generate_integrated_gradients(model, input_tensor)
 
+    ig_map = np.power(ig_map, 1.5)
+    ig_map[ig_map < 0.2] = 0
     ig_img = (ig_map * 255).astype(np.uint8)
     ig_img = cv2.applyColorMap(ig_img, cv2.COLORMAP_JET)
     ig_img = cv2.cvtColor(ig_img, cv2.COLOR_BGR2RGB)
