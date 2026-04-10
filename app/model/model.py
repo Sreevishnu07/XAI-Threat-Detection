@@ -9,11 +9,14 @@ LABELS_URL = "https://s3.amazonaws.com/deep-learning-models/image-models/imagene
 class_idx = json.load(urllib.request.urlopen(LABELS_URL))
 
 
-def load_model():
-    model = models.resnet18(pretrained=True)
-    model.eval()
-    return model
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+
+def load_model():
+    model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
+    model.eval()
+    model.to(DEVICE)
+    return model
 
 def preprocess_image(image: Image.Image):
     transform = transforms.Compose([
@@ -24,19 +27,38 @@ def preprocess_image(image: Image.Image):
             std=[0.229, 0.224, 0.225]
         )
     ])
-    return transform(image).unsqueeze(0)
+
+    tensor = transform(image).unsqueeze(0)
+    return tensor.to(DEVICE)
 
 
 def predict(model, image_tensor):
+    """
+    Returns:
+    {
+        label,
+        confidence,
+        class_id,
+        raw_output (optional for XAI)
+    }
+    """
+
     with torch.no_grad():
         output = model(image_tensor)
-
         probs = torch.nn.functional.softmax(output, dim=1)
         confidence, predicted = torch.max(probs, 1)
 
-        label = class_idx[str(predicted.item())][1]
+    class_id = predicted.item()
+    label = class_idx[str(class_id)][1]
 
     return {
         "label": label,
-        "confidence": round(confidence.item(), 4)
+        "confidence": round(confidence.item(), 4),
+        "class_id": class_id
     }
+
+def get_model_output(model, image_tensor):
+    """
+    Use this when gradients are required (e.g., Integrated Gradients)
+    """
+    return model(image_tensor)
