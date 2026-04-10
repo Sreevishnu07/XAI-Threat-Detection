@@ -5,7 +5,6 @@ import cv2
 from pytorch_grad_cam import GradCAMPlusPlus, ScoreCAM
 from pytorch_grad_cam.utils.image import show_cam_on_image
 
-# Integrated Gradients
 from captum.attr import IntegratedGradients
 
 
@@ -27,8 +26,8 @@ def compute_focus_score(cam: np.ndarray) -> float:
 def generate_integrated_gradients(model, input_tensor):
     ig = IntegratedGradients(model)
 
-    # target = predicted class
-    input_tensor.requires_grad = True
+    input_tensor = input_tensor.clone().detach().requires_grad_(True)
+
     output = model(input_tensor)
     target_class = output.argmax(dim=1).item()
 
@@ -40,6 +39,8 @@ def generate_integrated_gradients(model, input_tensor):
     attr = attr - attr.min()
     attr = attr / (attr.max() + 1e-8)
 
+    attr = cv2.GaussianBlur(attr, (5, 5), 0)
+
     return attr
 
 
@@ -47,7 +48,7 @@ def generate_xai_maps(model, input_tensor, image_np):
     """
     Returns:
     {
-        "gradcam++": image,
+        "gradcam_pp": image,
         "scorecam": image,
         "integrated_gradients": image,
         "focus_scores": {...}
