@@ -1,3 +1,5 @@
+import numpy as np
+
 THREAT_LABELS = {
     "revolver": 1.0,
     "pistol": 1.0,
@@ -15,45 +17,73 @@ THREAT_LABELS = {
     "person": 0.2,
 }
 
+
 def get_label_threat_weight(label: str) -> float:
     label = label.lower()
 
-    for key in THREAT_LABELS:
+    weights = []
+    for key, val in THREAT_LABELS.items():
         if key in label:
-            return THREAT_LABELS[key]
+            weights.append(val)
 
-    return 0.1  # default safe
+    if weights:
+        return max(weights)
+
+    return 0.1
 
 def normalize_focus(focus_score: float) -> float:
-    """
-    Ensure focus is between 0 and 1
-    """
-    return max(0.0, min(1.0, focus_score))
+    return float(np.clip(focus_score, 0.0, 1.0))
 
-def compute_threat_score(confidence: float, focus_score: float, label: str) -> float:
+def compute_consistency(focus_scores: dict) -> float:
     """
-    Combines:
-    - Model confidence
-    - Attention focus
-    - Semantic threat of object
+    Measures agreement between:
+    - GradCAM++
+    - ScoreCAM
+    - Integrated Gradients
+    """
+
+    values = list(focus_scores.values())
+
+    if len(values) < 2:
+        return 0.5  # neutral
+
+    std_dev = np.std(values)
+
+    # lower std → higher agreement
+    consistency = 1.0 - std_dev
+
+    return float(np.clip(consistency, 0.0, 1.0))
+
+
+def compute_threat_score(confidence: float, focus_scores: dict, label: str) -> float:
+    """
+    Uses:
+    - confidence
+    - multi-XAI focus
+    - label semantics
+    - consistency (NEW)
     """
 
     label_weight = get_label_threat_weight(label)
-    focus_score = normalize_focus(focus_score)
 
-    # Weighted fusion (IMPORTANT)
+    focus_values = [normalize_focus(f) for f in focus_scores.values()]
+    avg_focus = np.mean(focus_values)
+
+    consistency = compute_consistency(focus_scores)
+
     threat_score = (
-        0.4 * confidence +
-        0.3 * focus_score +
-        0.8 * label_weight
-    ) / (0.4 + 0.3 + 0.8)
+        0.35 * confidence +
+        0.25 * avg_focus +
+        0.25 * label_weight +
+        0.15 * consistency
+    )
 
-    return threat_score
+    return float(np.clip(threat_score, 0.0, 1.0))
 
 def get_threat_level(threat_score: float) -> str:
-    if threat_score > 0.7:
+    if threat_score > 0.75:
         return "HIGH"
-    elif threat_score > 0.4:
+    elif threat_score > 0.45:
         return "MEDIUM"
     else:
         return "SAFE"
