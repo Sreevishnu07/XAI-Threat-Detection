@@ -4,5 +4,7 @@ torch
 torchvision
 pillow
 python-multipart
-grad-cam
+pytorch-grad-cam
+captum
 opencv-python-headless
+numpy
