@@ -28,18 +28,28 @@ def generate_integrated_gradients(model, input_tensor):
 
     input_tensor = input_tensor.clone().detach().requires_grad_(True)
 
+    baseline = torch.zeros_like(input_tensor)
+
     output = model(input_tensor)
     target_class = output.argmax(dim=1).item()
 
-    attributions = ig.attribute(input_tensor, target=target_class)
+    attributions = ig.attribute(
+        input_tensor,
+        baselines=baseline,
+        target=target_class,
+        n_steps=50
+    )
 
     attr = attributions.squeeze().detach().cpu().numpy()
+
+    attr = np.abs(attr)
+
     attr = np.mean(attr, axis=0)
 
     attr = attr - attr.min()
     attr = attr / (attr.max() + 1e-8)
 
-    attr = cv2.GaussianBlur(attr, (5, 5), 0)
+    attr = cv2.GaussianBlur(attr, (7, 7), 0)
 
     return attr
 
