@@ -13,9 +13,6 @@ def get_target_layer(model):
     return model.layer4[-1]
 
 
-# ---------------------------
-# Focus Score (same, correct)
-# ---------------------------
 def compute_focus_score(cam: np.ndarray) -> float:
     cam = cam - cam.min()
     cam = cam / (cam.max() + 1e-8)
@@ -27,9 +24,6 @@ def compute_focus_score(cam: np.ndarray) -> float:
     return float(np.clip(focus_score, 0.0, 1.0))
 
 
-# ---------------------------
-# Integrated Gradients
-# ---------------------------
 def generate_integrated_gradients(model, input_tensor):
     ig = IntegratedGradients(model)
 
