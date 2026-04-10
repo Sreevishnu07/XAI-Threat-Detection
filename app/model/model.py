@@ -6,8 +6,11 @@ import json
 import urllib.request
 
 LABELS_URL = "https://s3.amazonaws.com/deep-learning-models/image-models/imagenet_class_index.json"
-class_idx = json.load(urllib.request.urlopen(LABELS_URL))
 
+try:
+    class_idx = json.load(urllib.request.urlopen(LABELS_URL))
+except Exception:
+    class_idx = {str(i): ["", f"class_{i}"] for i in range(1000)}
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -17,6 +20,7 @@ def load_model():
     model.eval()
     model.to(DEVICE)
     return model
+
 
 def preprocess_image(image: Image.Image):
     transform = transforms.Compose([
@@ -38,8 +42,7 @@ def predict(model, image_tensor):
     {
         label,
         confidence,
-        class_id,
-        raw_output (optional for XAI)
+        class_id
     }
     """
 
@@ -49,13 +52,14 @@ def predict(model, image_tensor):
         confidence, predicted = torch.max(probs, 1)
 
     class_id = predicted.item()
-    label = class_idx[str(class_id)][1]
+    label = class_idx.get(str(class_id), ["", f"class_{class_id}"])[1]
 
     return {
         "label": label,
         "confidence": round(confidence.item(), 4),
         "class_id": class_id
     }
+
 
 def get_model_output(model, image_tensor):
     """
