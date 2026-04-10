@@ -3,7 +3,7 @@ services:
     container_name: xai-api
 
     build:
-      context: .          
+      context: .
       dockerfile: app/Dockerfile
 
     ports:
@@ -12,4 +12,12 @@ services:
     volumes:
       - ./app:/app/app
 
-    restart: always
+    working_dir: /app
+
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ENV=development
+
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+    restart: unless-stopped
