@@ -26,42 +26,38 @@ def get_label_threat_weight(label: str) -> float:
         if key in label:
             weights.append(val)
 
-    if weights:
-        return max(weights)
+    return max(weights) if weights else 0.1
 
-    return 0.1
 
 def normalize_focus(focus_score: float) -> float:
     return float(np.clip(focus_score, 0.0, 1.0))
 
-def compute_consistency(focus_scores: dict) -> float:
-    """
-    Measures agreement between:
-    - GradCAM++
-    - ScoreCAM
-    - Integrated Gradients
-    """
 
+def compute_consistency(focus_scores: dict) -> float:
     values = list(focus_scores.values())
 
     if len(values) < 2:
-        return 0.5  # neutral
+        return 0.5
 
     std_dev = np.std(values)
 
-    # lower std → higher agreement
     consistency = 1.0 - std_dev
 
     return float(np.clip(consistency, 0.0, 1.0))
 
 
-def compute_threat_score(confidence: float, focus_scores: dict, label: str) -> float:
+def get_trust_level(consistency: float) -> str:
+    if consistency > 0.75:
+        return "HIGH"
+    elif consistency > 0.5:
+        return "MEDIUM"
+    else:
+        return "LOW"
+
+def compute_threat_score(confidence: float, focus_scores: dict, label: str):
     """
-    Uses:
-    - confidence
-    - multi-XAI focus
-    - label semantics
-    - consistency (NEW)
+    Returns:
+    threat_score, consistency
     """
 
     label_weight = get_label_threat_weight(label)
@@ -72,13 +68,15 @@ def compute_threat_score(confidence: float, focus_scores: dict, label: str) -> f
     consistency = compute_consistency(focus_scores)
 
     threat_score = (
-        0.35 * confidence +
-        0.25 * avg_focus +
+        0.4 * confidence +
+        0.2 * avg_focus +
         0.25 * label_weight +
         0.15 * consistency
     )
 
-    return float(np.clip(threat_score, 0.0, 1.0))
+    threat_score = float(np.clip(threat_score, 0.0, 1.0))
+
+    return threat_score, consistency
 
 def get_threat_level(threat_score: float) -> str:
     if threat_score > 0.75:
