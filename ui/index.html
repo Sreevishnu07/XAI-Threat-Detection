@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>XAI Threat Detection</title>
+    <title>XAI Threat Intelligence</title>
 
     <style>
         body {
-            font-family: Arial;
-            background: #0f172a;
-            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            background: #0b1220;
+            color: #e2e8f0;
             text-align: center;
         }
 
         h1 {
             color: #38bdf8;
+            margin-top: 20px;
         }
 
         .container {
@@ -22,60 +23,72 @@
         input, button {
             padding: 10px;
             margin: 10px;
+            border-radius: 6px;
         }
 
         button {
-            background: #22c55e;
+            background: #38bdf8;
             border: none;
             cursor: pointer;
             font-weight: bold;
+            color: black;
         }
 
         .images {
             display: flex;
             justify-content: center;
-            gap: 40px;
-            margin-top: 20px;
+            gap: 30px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .img-box {
+            text-align: center;
         }
 
         img {
-            width: 260px;
-            border-radius: 12px;
+            width: 240px;
+            border-radius: 10px;
             background: white;
-            padding: 10px;
+            padding: 5px;
         }
 
         .card {
-            background: #1e293b;
+            background: #111827;
             padding: 20px;
             margin: 30px auto;
-            width: 420px;
-            border-radius: 15px;
+            width: 450px;
+            border-radius: 12px;
             text-align: left;
         }
 
-        .high { color: red; font-weight: bold; }
-        .medium { color: orange; font-weight: bold; }
-        .safe { color: lightgreen; font-weight: bold; }
+        .high { color: #ef4444; }
+        .medium { color: #f59e0b; }
+        .safe { color: #22c55e; }
 
         .bar {
-            height: 20px;
-            border-radius: 10px;
-            background: #334155;
+            height: 12px;
+            border-radius: 6px;
+            background: #1f2937;
             margin-top: 10px;
             overflow: hidden;
         }
 
         .fill {
             height: 100%;
-            border-radius: 10px;
+            border-radius: 6px;
+        }
+
+        .scores {
+            font-size: 14px;
+            margin-top: 10px;
         }
     </style>
 </head>
 
 <body>
 
-<h1>🔍 XAI Threat Detection System</h1>
+<h1>XAI Threat Intelligence System</h1>
 
 <div class="container">
     <input type="file" id="fileInput">
@@ -83,14 +96,24 @@
 </div>
 
 <div class="images">
-    <div>
-        <h3>Original</h3>
+    <div class="img-box">
+        <h4>Original</h4>
         <img id="original">
     </div>
 
-    <div>
-        <h3>Grad-CAM</h3>
+    <div class="img-box">
+        <h4>Grad-CAM++</h4>
         <img id="gradcam">
+    </div>
+
+    <div class="img-box">
+        <h4>Score-CAM</h4>
+        <img id="scorecam">
+    </div>
+
+    <div class="img-box">
+        <h4>Integrated Gradients</h4>
+        <img id="ig">
     </div>
 </div>
 
@@ -117,25 +140,21 @@ async function upload() {
         });
 
         const data = await res.json();
-        console.log("API RESPONSE:", data);
+        console.log(data);
 
-        if (!data || !data.threat_score) {
-            document.getElementById("result").innerHTML =
-                "<p style='color:red;'>Error: No response from backend</p>";
-            return;
-        }
-
-        // Show Grad-CAM
+        // Set images
         document.getElementById("gradcam").src =
-            "data:image/jpeg;base64," + data.gradcam;
+            "data:image/jpeg;base64," + data.xai.gradcam_pp;
 
-        // Threat level class
+        document.getElementById("scorecam").src =
+            "data:image/jpeg;base64," + data.xai.scorecam;
+
+        document.getElementById("ig").src =
+            "data:image/jpeg;base64," + data.xai.integrated_gradients;
+
         let levelClass = data.threat_level.toLowerCase();
-
-        // Bar width
         let width = data.threat_score * 100;
 
-        // Render UI
         document.getElementById("result").innerHTML = `
             <h2>${data.prediction.label}</h2>
 
@@ -153,20 +172,23 @@ async function upload() {
             </div>
 
             <p><b>Threat Score:</b> ${data.threat_score}</p>
-            <p><b>Focus Score:</b> ${data.focus_score}</p>
+
+            <div class="scores">
+                <p>GradCAM++ Focus: ${data.focus_scores.gradcam_pp}</p>
+                <p>ScoreCAM Focus: ${data.focus_scores.scorecam}</p>
+                <p>IG Focus: ${data.focus_scores.integrated_gradients}</p>
+            </div>
         `;
 
     } catch (err) {
         console.error(err);
-        document.getElementById("result").innerHTML =
-            "<p style='color:red;'>Request failed</p>";
     }
 }
 
 function getColor(score) {
-    if (score > 0.7) return "red";
-    if (score > 0.4) return "orange";
-    return "green";
+    if (score > 0.75) return "#ef4444";
+    if (score > 0.45) return "#f59e0b";
+    return "#22c55e";
 }
 </script>
 
