@@ -16,28 +16,34 @@ def compute_focus_score(cam: np.ndarray) -> float:
     cam = cam / (cam.max() + 1e-8)
     mean_val = np.mean(cam)
     max_val = np.max(cam)
-    focus_score = max_val - mean_val
-    return float(np.clip(focus_score, 0.0, 1.0))
+    return float(np.clip(max_val - mean_val, 0.0, 1.0))
 
 
 def generate_integrated_gradients(model, input_tensor):
     ig = IntegratedGradients(model)
+
     input_tensor = input_tensor.clone().detach().requires_grad_(True)
     baseline = torch.zeros_like(input_tensor)
+
     output = model(input_tensor)
     target_class = output.argmax(dim=1).item()
+
     attributions = ig.attribute(
         input_tensor,
         baselines=baseline,
         target=target_class,
         n_steps=50
     )
+
     attr = attributions.squeeze().detach().cpu().numpy()
     attr = np.abs(attr)
     attr = np.mean(attr, axis=0)
+
     attr = attr - attr.min()
     attr = attr / (attr.max() + 1e-8)
-    attr = cv2.GaussianBlur(attr, (7, 7), 0)
+
+    attr = cv2.GaussianBlur(attr, (5, 5), 0)
+
     return attr
 
 
@@ -56,13 +62,16 @@ def generate_xai_maps(model, input_tensor, image_np):
 
     ig_map = generate_integrated_gradients(model, input_tensor)
 
-    low = np.percentile(ig_map, 5)
-    high = np.percentile(ig_map, 95)
+    low = np.percentile(ig_map, 3)
+    high = np.percentile(ig_map, 97)
     ig_map = np.clip((ig_map - low) / (high - low + 1e-8), 0, 1)
-    ig_map = np.power(ig_map, 1.2)
 
-    ig_img = (ig_map * 255).astype(np.uint8)
-    ig_img = cv2.applyColorMap(ig_img, cv2.COLORMAP_JET)
+    ig_map = np.power(ig_map, 1.5)
+
+    ig_uint8 = (ig_map * 255).astype(np.uint8)
+    ig_uint8 = cv2.medianBlur(ig_uint8, 5)
+
+    ig_img = cv2.applyColorMap(ig_uint8, cv2.COLORMAP_JET)
     ig_img = cv2.cvtColor(ig_img, cv2.COLOR_BGR2RGB)
 
     focus_ig = compute_focus_score(ig_map)
