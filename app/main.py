@@ -5,6 +5,9 @@ import io
 import numpy as np
 import cv2
 import base64
+import hashlib
+import json
+import redis
 
 from app.model.model import load_model, preprocess_image, predict
 from app.model.gradcam import generate_xai_maps
@@ -27,6 +30,13 @@ app.add_middleware(
 )
 
 model = load_model()
+
+# Redis (safe fallback)
+try:
+    redis_client = redis.Redis(host="redis", port=6379, decode_responses=True)
+    redis_client.ping()
+except:
+    redis_client = None
 
 
 @app.get("/")
@@ -74,6 +84,14 @@ async def predict_xai(file: UploadFile = File(...)):
         if not contents:
             raise HTTPException(status_code=400, detail="Empty file")
 
+        # 🔥 Redis cache check
+        image_hash = hashlib.md5(contents).hexdigest()
+
+        if redis_client:
+            cached = redis_client.get(image_hash)
+            if cached:
+                return json.loads(cached)
+
         try:
             image = Image.open(io.BytesIO(contents)).convert("RGB")
         except UnidentifiedImageError:
@@ -102,7 +120,6 @@ async def predict_xai(file: UploadFile = File(...)):
         threat_level = get_threat_level(threat_score)
         trust_level = get_trust_level(consistency)
 
-        # 🔥 NEW: uncertainty
         uncertainty = compute_uncertainty(confidence, consistency, label)
 
         explanation = generate_explanation(
@@ -118,7 +135,7 @@ async def predict_xai(file: UploadFile = File(...)):
             _, buffer = cv2.imencode(".jpg", img)
             return base64.b64encode(buffer).decode("utf-8")
 
-        return {
+        response_data = {
             "prediction": result,
 
             "xai": {
@@ -141,6 +158,11 @@ async def predict_xai(file: UploadFile = File(...)):
 
             "explanation": explanation
         }
+
+        if redis_client:
+            redis_client.setex(image_hash, 300, json.dumps(response_data))
+
+        return response_data
 
     except HTTPException as e:
         raise e
