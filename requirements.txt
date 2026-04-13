@@ -1,8 +1,1 @@
-fastapi
-uvicorn
-torch
-torchvision
-pillow
-pytest
-grad-cam
-opencv-python-headless
+reportlab
