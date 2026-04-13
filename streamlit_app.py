@@ -10,14 +10,19 @@ if uploaded_file:
 
     if st.button("Analyze"):
         try:
-            files = {"file": uploaded_file.getvalue()}
-
             response = requests.post(
                 "http://api:8000/predict-xai",
-                files={"file": uploaded_file.getvalue()}
+                files={
+                    "file": (
+                        uploaded_file.name,
+                        uploaded_file.getvalue(),
+                        uploaded_file.type
+                    )
+                }
             )
 
             data = response.json()
+
             if "prediction" not in data:
                 st.error(f"API Error: {data}")
                 st.stop()
@@ -32,7 +37,6 @@ if uploaded_file:
             st.write("Explanation:")
             st.info(data["explanation"])
 
-            # Images
             st.image(
                 "data:image/jpeg;base64," + data["xai"]["gradcam_pp"],
                 caption="GradCAM++"
