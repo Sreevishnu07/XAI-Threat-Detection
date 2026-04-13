@@ -1,23 +1,27 @@
+version: "3.9"
+
 services:
   api:
     container_name: xai-api
-
     build:
       context: .
       dockerfile: app/Dockerfile
-
     ports:
       - "8000:8000"
-
     volumes:
       - ./app:/app/app
+    restart: always
 
+  streamlit:
+    container_name: xai-streamlit
+    image: python:3.10-slim
     working_dir: /app
-
-    environment:
-      - PYTHONUNBUFFERED=1
-      - ENV=development
-
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-
-    restart: unless-stopped
+    volumes:
+      - .:/app
+    command: >
+      bash -c "pip install streamlit requests &&
+               streamlit run streamlit_app.py --server.port 8501 --server.address 0.0.0.0"
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api
