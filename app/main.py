@@ -102,6 +102,7 @@ async def predict_xai(file: UploadFile = File(...)):
         threat_level = get_threat_level(threat_score)
         trust_level = get_trust_level(consistency)
 
+        # 🔥 NEW: uncertainty
         uncertainty = compute_uncertainty(confidence, consistency, label)
 
         explanation = generate_explanation(
@@ -109,7 +110,8 @@ async def predict_xai(file: UploadFile = File(...)):
             confidence,
             focus_scores,
             consistency,
-            threat_level
+            threat_level,
+            uncertainty
         )
 
         def encode(img):
