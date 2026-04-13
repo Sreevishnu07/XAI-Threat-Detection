@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import json
 
 st.set_page_config(page_title="XAI Threat Intelligence", layout="wide")
 
@@ -92,13 +93,33 @@ if uploaded_file:
                     caption="Integrated Gradients"
                 )
 
-            st.markdown("### 📊 Attention Analysis")
+            st.markdown("### Attention Analysis")
 
             f1, f2, f3 = st.columns(3)
 
             f1.metric("GradCAM++ Focus", f"{data['focus_scores']['gradcam_pp']:.4f}")
             f2.metric("ScoreCAM Focus", f"{data['focus_scores']['scorecam']:.4f}")
             f3.metric("IG Focus", f"{data['focus_scores']['integrated_gradients']:.4f}")
+
+            report = {
+                "label": label,
+                "confidence": confidence,
+                "threat_score": score,
+                "threat_level": threat,
+                "trust": trust,
+                "consistency": consistency,
+                "uncertainty": data.get("uncertainty", "N/A"),
+                "explanation": data["explanation"]
+            }
+
+            st.markdown("### 📥 Download Report")
+
+            st.download_button(
+                label="Download JSON Report",
+                data=json.dumps(report, indent=4),
+                file_name="xai_report.json",
+                mime="application/json"
+            )
 
         except Exception as e:
             st.error(f"Something went wrong: {str(e)}")
