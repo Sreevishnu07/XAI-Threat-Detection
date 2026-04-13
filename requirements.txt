@@ -1,12 +1,12 @@
 fastapi
 uvicorn
-torch
-torchvision
+torch==2.2.0
+torchvision==0.17.0
 numpy
 opencv-python
 pillow
 captum
-pytorch-grad-cam
+grad-cam
 requests
 streamlit
 reportlab
