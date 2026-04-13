@@ -24,11 +24,11 @@ def generate_explanation(label, confidence, focus_scores, consistency, threat_le
         consistency_text = "low agreement across methods"
 
     if threat_level == "HIGH":
-    threat_text = "indicating a high-risk object"
+        threat_text = "indicating a high-risk object"
     elif threat_level == "MEDIUM":
-    threat_text = "suggesting moderate risk"
+        threat_text = "suggesting moderate risk"
     else:
-    threat_text = "indicating a safe and non-threatening object"
+        threat_text = "indicating a safe and non-threatening object"
 
     explanation = (
         f"The model predicts '{label}' with {conf_text}. "
