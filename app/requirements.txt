@@ -4,7 +4,8 @@ torch
 torchvision
 pillow
 python-multipart
-pytorch-grad-cam
+grad-cam
 captum
 opencv-python-headless
 numpy
+reportlab
