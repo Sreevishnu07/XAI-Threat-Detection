@@ -1,3 +1,6 @@
+import hashlib
+import json
+import redis
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image, UnidentifiedImageError
@@ -5,9 +8,6 @@ import io
 import numpy as np
 import cv2
 import base64
-import hashlib
-import json
-import redis
 
 from app.model.model import load_model, preprocess_image, predict
 from app.model.gradcam import generate_xai_maps
@@ -31,7 +31,6 @@ app.add_middleware(
 
 model = load_model()
 
-# Redis (safe fallback)
 try:
     redis_client = redis.Redis(host="redis", port=6379, decode_responses=True)
     redis_client.ping()
@@ -84,13 +83,14 @@ async def predict_xai(file: UploadFile = File(...)):
         if not contents:
             raise HTTPException(status_code=400, detail="Empty file")
 
-        # 🔥 Redis cache check
         image_hash = hashlib.md5(contents).hexdigest()
 
         if redis_client:
             cached = redis_client.get(image_hash)
             if cached:
-                return json.loads(cached)
+                data = json.loads(cached)
+                data["cache"] = True
+                return data
 
         try:
             image = Image.open(io.BytesIO(contents)).convert("RGB")
@@ -156,7 +156,9 @@ async def predict_xai(file: UploadFile = File(...)):
 
             "uncertainty": uncertainty,
 
-            "explanation": explanation
+            "explanation": explanation,
+
+            "cache": False
         }
 
         if redis_client:
