@@ -11,7 +11,8 @@ from app.model.gradcam import generate_xai_maps
 from app.model.threat import (
     compute_threat_score,
     get_threat_level,
-    get_trust_level
+    get_trust_level,
+    compute_uncertainty
 )
 from app.model.explainer import generate_explanation
 
@@ -101,6 +102,8 @@ async def predict_xai(file: UploadFile = File(...)):
         threat_level = get_threat_level(threat_score)
         trust_level = get_trust_level(consistency)
 
+        uncertainty = compute_uncertainty(confidence, consistency, label)
+
         explanation = generate_explanation(
             label,
             confidence,
@@ -131,6 +134,8 @@ async def predict_xai(file: UploadFile = File(...)):
 
             "consistency": round(consistency, 4),
             "trust_level": trust_level,
+
+            "uncertainty": uncertainty,
 
             "explanation": explanation
         }
