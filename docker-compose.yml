@@ -13,14 +13,10 @@ services:
     restart: always
 
   streamlit:
+    build:
+      context: .
+      dockerfile: streamlit/Dockerfile
     container_name: xai-streamlit
-    image: python:3.10-slim
-    working_dir: /app
-    volumes:
-      - .:/app
-    command: >
-      bash -c "pip install streamlit requests &&
-               streamlit run streamlit_app.py --server.port 8501 --server.address 0.0.0.0"
     ports:
       - "8501:8501"
     depends_on:
