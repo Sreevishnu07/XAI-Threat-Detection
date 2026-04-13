@@ -194,6 +194,13 @@ async function upload() {
                 <p><b>Consistency:</b> ${data.consistency}</p>
             </div>
 
+            <div class="section">
+                <p><b>Explanation:</b></p>
+                <p style="line-height:1.6; color:#cbd5f5;">
+                    ${data.explanation}
+                </p>
+            </div>
+
             <div class="section scores">
                 <p>GradCAM++ Focus: ${data.focus_scores.gradcam_pp}</p>
                 <p>ScoreCAM Focus: ${data.focus_scores.scorecam}</p>
