@@ -106,7 +106,14 @@ if uploaded_file:
             consistency = data["consistency"]
             uncertainty = data.get("uncertainty", "N/A")
 
-            st.markdown(f"## 🔍 {label}")
+            cache_hit = data.get("cache", False)
+
+            st.markdown(f"## {label}")
+
+            if cache_hit:
+                st.success("⚡ Served from cache (fast response)")
+            else:
+                st.info("Computed fresh inference")
 
             col1, col2, col3, col4, col5 = st.columns(5)
 
