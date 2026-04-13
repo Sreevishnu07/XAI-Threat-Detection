@@ -40,7 +40,6 @@ def compute_consistency(focus_scores: dict) -> float:
         return 0.5
 
     std_dev = np.std(values)
-
     consistency = 1.0 - std_dev
 
     return float(np.clip(consistency, 0.0, 1.0))
@@ -54,12 +53,8 @@ def get_trust_level(consistency: float) -> str:
     else:
         return "LOW"
 
-def compute_threat_score(confidence: float, focus_scores: dict, label: str):
-    """
-    Returns:
-    threat_score, consistency
-    """
 
+def compute_threat_score(confidence: float, focus_scores: dict, label: str):
     label_weight = get_label_threat_weight(label)
 
     focus_values = [normalize_focus(f) for f in focus_scores.values()]
@@ -78,6 +73,7 @@ def compute_threat_score(confidence: float, focus_scores: dict, label: str):
 
     return threat_score, consistency
 
+
 def get_threat_level(threat_score: float) -> str:
     if threat_score > 0.75:
         return "HIGH"
@@ -85,3 +81,18 @@ def get_threat_level(threat_score: float) -> str:
         return "MEDIUM"
     else:
         return "SAFE"
+
+
+def compute_uncertainty(confidence: float, consistency: float, label: str) -> str:
+    label_weight = get_label_threat_weight(label)
+
+    if confidence > 0.85 and consistency < 0.5:
+        return "WARNING"
+
+    if confidence > 0.85 and label_weight < 0.2:
+        return "LOW_RISK_OBJECT"
+
+    if confidence < 0.5:
+        return "LOW_CONFIDENCE"
+
+    return "NORMAL"
