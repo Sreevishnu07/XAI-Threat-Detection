@@ -5,6 +5,6 @@ WORKDIR /app
 COPY streamlit/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY streamlit/streamlit_app.py .
+COPY streamlit/ .
 
 CMD ["streamlit", "run", "streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0"]
