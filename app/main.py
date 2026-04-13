@@ -13,6 +13,7 @@ from app.model.threat import (
     get_threat_level,
     get_trust_level
 )
+from app.model.explainer import generate_explanation
 
 app = FastAPI()
 
@@ -83,7 +84,6 @@ async def predict_xai(file: UploadFile = File(...)):
         confidence = result["confidence"]
         label = result["label"]
 
-
         image_resized = image.resize((224, 224))
         image_np = np.array(image_resized) / 255.0
 
@@ -101,6 +101,13 @@ async def predict_xai(file: UploadFile = File(...)):
         threat_level = get_threat_level(threat_score)
         trust_level = get_trust_level(consistency)
 
+        explanation = generate_explanation(
+            label,
+            confidence,
+            focus_scores,
+            consistency,
+            threat_level
+        )
 
         def encode(img):
             _, buffer = cv2.imencode(".jpg", img)
@@ -123,7 +130,9 @@ async def predict_xai(file: UploadFile = File(...)):
             "threat_level": threat_level,
 
             "consistency": round(consistency, 4),
-            "trust_level": trust_level
+            "trust_level": trust_level,
+
+            "explanation": explanation
         }
 
     except HTTPException as e:
