@@ -9,3 +9,4 @@ captum
 opencv-python-headless
 numpy
 reportlab
+redis
