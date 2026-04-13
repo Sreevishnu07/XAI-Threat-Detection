@@ -1,6 +1,11 @@
+from app.model.threat import get_label_threat_weight
+
+
 def generate_explanation(label, confidence, focus_scores, consistency, threat_level):
     
     avg_focus = sum(focus_scores.values()) / len(focus_scores)
+
+    label_weight = get_label_threat_weight(label)
 
     if confidence > 0.85:
         conf_text = "high confidence"
@@ -23,12 +28,14 @@ def generate_explanation(label, confidence, focus_scores, consistency, threat_le
     else:
         consistency_text = "low agreement across methods"
 
-    if threat_level == "HIGH":
+    if label_weight < 0.2:
+        threat_text = "indicating a safe and non-threatening object"
+    elif threat_level == "HIGH":
         threat_text = "indicating a high-risk object"
     elif threat_level == "MEDIUM":
         threat_text = "suggesting moderate risk"
     else:
-        threat_text = "indicating a safe and non-threatening object"
+        threat_text = "indicating a safe object"
 
     explanation = (
         f"The model predicts '{label}' with {conf_text}. "
