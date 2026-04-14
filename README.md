@@ -185,6 +185,6 @@ Open to improvements, ideas, and collaborations.
 
 ---
 
-## 💡 Author
+## Authored By Sree Vishnu
 
 Built with a focus on **Machine Learning + Systems + DevOps integration** — not just model accuracy.
