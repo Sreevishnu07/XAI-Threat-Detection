@@ -46,7 +46,7 @@ jobs:
 
       - name: Build Streamlit Docker Image
         run: |
-          docker build -t xai-streamlit ./streamlit
+          docker build -t xai-streamlit -f streamlit/Dockerfile .
 
       - name: Start Docker Compose
         run: |
