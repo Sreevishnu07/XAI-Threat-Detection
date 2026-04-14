@@ -3,7 +3,6 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [ main ]
-  pull_request:
 
 jobs:
   test-build-push:
@@ -43,11 +42,11 @@ jobs:
 
       - name: Build API Docker Image
         run: |
-          docker build -t xai-api ./app
+          docker build -t xai-api -f app/Dockerfile .
 
       - name: Build Streamlit Docker Image
         run: |
-          docker build -t xai-streamlit ./streamlit
+          docker build -t xai-streamlit -f streamlit/dockerfile ./streamlit
 
       - name: Start Docker Compose
         run: |
