@@ -13,3 +13,4 @@ reportlab
 pytest
 httpx
 redis
+python-multipart
