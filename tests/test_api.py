@@ -30,7 +30,6 @@ def test_predict_xai_response_structure():
     import io
     from PIL import Image
 
-    # create dummy image
     img = Image.new("RGB", (10, 10), color="white")
     buf = io.BytesIO()
     img.save(buf, format="JPEG")
