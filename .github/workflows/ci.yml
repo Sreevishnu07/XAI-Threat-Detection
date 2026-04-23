@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 jobs:
-  test-build-push:
+  test:
     runs-on: ubuntu-latest
 
     services:
@@ -29,43 +29,55 @@ jobs:
           python-version: "3.10"
 
       - name: Install API dependencies
-        run: |
-          pip install -r requirements.txt
+        run: pip install -r requirements.txt
 
       - name: Install Streamlit dependencies
-        run: |
-          pip install -r streamlit/requirements.txt
+        run: pip install -r streamlit/requirements.txt
 
       - name: Set PYTHONPATH
         run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
 
       - name: Run tests
-        run: |
-          pytest
-        
+        run: pytest
+
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test  
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
       - name: Build API Docker Image
-        run: |
-          docker build -t xai-api -f app/Dockerfile .
+        run: docker build -t xai-api -f app/Dockerfile .
 
       - name: Build Streamlit Docker Image
-        run: |
-          docker build -t xai-streamlit -f streamlit/Dockerfile .
+        run: docker build -t xai-streamlit -f streamlit/Dockerfile .
 
       - name: Start Docker Compose
-        run: |
-          docker compose up -d
+        run: docker compose up -d
 
-      - name: Wait for API to be ready
+      - name: Wait for API
         run: |
           sleep 20
           curl --fail http://localhost:8000/ || exit 1
 
-      - name: Test API health
-        run: |
-          curl http://localhost:8000/
-
       - name: Stop containers
         run: docker compose down
+
+  push:
+    runs-on: ubuntu-latest
+    needs: build 
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Build images again (required in new runner)
+        run: |
+          docker build -t xai-api -f app/Dockerfile .
+          docker build -t xai-streamlit -f streamlit/Dockerfile .
 
       - name: Login to DockerHub
         uses: docker/login-action@v2
