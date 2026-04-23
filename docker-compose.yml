@@ -9,17 +9,65 @@ services:
     volumes:
       - ./app:/app/app
     restart: always
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - xai-network
 
   streamlit:
+    container_name: xai-streamlit
     build:
       context: .
       dockerfile: streamlit/Dockerfile
-    container_name: xai-streamlit
     ports:
       - "8501:8501"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - xai-network
 
   redis:
     image: redis:7
     container_name: xai-redis
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - xai-network
+
+volumes:
+  redis_data:
+
+networks:
+  xai-network:
