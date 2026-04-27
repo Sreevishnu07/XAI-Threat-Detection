@@ -71,6 +71,10 @@ jobs:
           echo "API failed to start"
           exit 1
 
+      - name: Install test dependencies
+        run: |
+          pip install -r requirements.txt
+
       - name: Integration Test (API end-to-end)
         run: |
           python - <<EOF
