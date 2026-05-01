@@ -155,35 +155,43 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd ~
-
+            
             docker system prune -a -f --volumes
-
+            docker builder prune -a -f
+            
             docker pull svish07/xai-api:latest
             docker pull svish07/xai-streamlit:latest
             docker pull redis:7
-
+            
             docker stop xai-api || true
             docker rm xai-api || true
+            
             docker stop xai-streamlit || true
             docker rm xai-streamlit || true
+            
             docker stop xai-redis || true
             docker rm xai-redis || true
-
-            docker network create xai-net || true
-
+            
+            docker network create xai-network || true
+            
             docker run -d \
               --name xai-redis \
-              --network xai-net \
+              --network xai-network \
+              --restart always \
               redis:7
-
+            
+            sleep 5
+            
             docker run -d \
               --name xai-api \
-              --network xai-net \
+              --network xai-network \
               -p 8000:8000 \
+              --restart always \
               svish07/xai-api:latest
-
+            
             docker run -d \
               --name xai-streamlit \
-              --network xai-net \
+              --network xai-network \
               -p 8501:8501 \
+              --restart always \
               svish07/xai-streamlit:latest
