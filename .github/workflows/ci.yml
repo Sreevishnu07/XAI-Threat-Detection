@@ -160,6 +160,29 @@ jobs:
 
             docker pull svish07/xai-api:latest
             docker pull svish07/xai-streamlit:latest
+            docker pull redis:7
 
-            docker compose -f docker-compose.prod.yml down || true
-            docker compose -f docker-compose.prod.yml up -d
+            docker stop xai-api || true
+            docker rm xai-api || true
+
+            docker stop xai-streamlit || true
+            docker rm xai-streamlit || true
+
+            docker stop xai-redis || true
+            docker rm xai-redis || true
+
+            docker run -d \
+              --name xai-redis \
+            redis:7
+
+            docker run -d \
+              --name xai-api \
+              -p 8000:8000 \
+              --link xai-redis \
+              svish07/xai-api:latest
+
+            docker run -d \
+              --name xai-streamlit \
+              -p 8501:8501 \
+              --link xai-api \
+              svish07/xai-streamlit:latest
