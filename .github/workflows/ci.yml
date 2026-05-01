@@ -144,7 +144,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "docker-compose.yml"
+          source: "docker-compose.prod.yml"
           target: "~/"
 
       - name: Deploy using Docker Compose
