@@ -164,25 +164,26 @@ jobs:
 
             docker stop xai-api || true
             docker rm xai-api || true
-
             docker stop xai-streamlit || true
             docker rm xai-streamlit || true
-
             docker stop xai-redis || true
             docker rm xai-redis || true
 
+            docker network create xai-net || true
+
             docker run -d \
               --name xai-redis \
-            redis:7
+              --network xai-net \
+              redis:7
 
             docker run -d \
               --name xai-api \
+              --network xai-net \
               -p 8000:8000 \
-              --link xai-redis \
               svish07/xai-api:latest
 
             docker run -d \
               --name xai-streamlit \
+              --network xai-net \
               -p 8501:8501 \
-              --link xai-api \
               svish07/xai-streamlit:latest
