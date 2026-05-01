@@ -82,7 +82,7 @@ if uploaded_file:
     if st.button("Analyze"):
         try:
             response = requests.post(
-                "http://api:8000/predict-xai",
+                "http://xai-api:8000/predict-xai",
                 files={
                     "file": (
                         uploaded_file.name,
