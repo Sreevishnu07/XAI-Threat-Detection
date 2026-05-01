@@ -129,19 +129,37 @@ jobs:
           docker tag xai-streamlit ${{ secrets.DOCKER_USERNAME }}/xai-streamlit:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/xai-streamlit:latest
 
+
   deploy:
     runs-on: ubuntu-latest
-    needs: push   
+    needs: push
+
     steps:
-      - name: Deploy to server via SSH
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Copy docker-compose.yml to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "docker-compose.yml"
+          target: "~/"
+
+      - name: Deploy using Docker Compose
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
+            cd ~
+
+            docker system prune -a -f
+
             docker pull ${{ secrets.DOCKER_USERNAME }}/xai-api:latest
             docker pull ${{ secrets.DOCKER_USERNAME }}/xai-streamlit:latest
 
-            docker compose down
+            docker compose down || true
             docker compose up -d
