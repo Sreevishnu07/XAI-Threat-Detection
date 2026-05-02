@@ -80,6 +80,11 @@ def generate_xai_maps(model, input_tensor, image_np):
         "gradcam_pp": cam_pp_img,
         "scorecam": score_img,
         "integrated_gradients": ig_img,
+        "maps": {  
+        "gradcam_pp": cam_pp_map,
+        "scorecam": score_map,
+        "integrated_gradients": ig_map
+        },
         "focus_scores": {
             "gradcam_pp": focus_pp,
             "scorecam": focus_scorecam,
