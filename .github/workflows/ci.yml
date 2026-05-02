@@ -181,7 +181,18 @@ jobs:
                 --restart always \
                 --env REDIS_HOST=xai-redis \
                 svish07/xai-api:latest
-        
+
+                echo "Waiting for API to be ready..."
+
+                for i in {1..30}; do
+                  if curl -s http://localhost:8000 > /dev/null; then
+                    echo "API is ready!"
+                    break
+                  fi
+                  echo "Still waiting..."
+                  sleep 5
+                done
+
                docker run -d \
                 --name xai-streamlit \
                 --network xai-network \
