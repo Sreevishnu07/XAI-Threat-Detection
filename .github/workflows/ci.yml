@@ -147,50 +147,47 @@ jobs:
             timeout: 30m
             script: |
                cd ~
-               sudo systemctl stop docker
 
-               sudo rm -rf /var/lib/docker
-
-               sudo systemctl start docker
-               docker container prune -f
-               docker system prune -af
-               docker volume prune -f
-               docker pull svish07/xai-api:latest &
-               docker pull svish07/xai-streamlit:latest &
-               docker pull redis:7 &
-
-               wait
-        
-               docker stop xai-api || true
-               docker rm xai-api || true
-        
-               docker stop xai-streamlit || true
-               docker rm xai-streamlit || true
-        
-               docker stop xai-redis || true
-               docker rm xai-redis || true
-        
-               docker network create xai-network || true
-        
-               docker run -d \
-                --name xai-redis \
-                --network xai-network \
-                --restart always \
-                redis:7
-        
-               sleep 5
-        
-               docker run -d \
-                --name xai-api \
-                --network xai-network \
-                -p 8000:8000 \
-                --restart always \
-                --env REDIS_HOST=xai-redis \
-                svish07/xai-api:latest
-
+                sudo systemctl stop docker
+                sudo rm -rf /var/lib/docker
+                sudo systemctl start docker
+                sleep 10   
+                
+                docker pull svish07/xai-api:latest &
+                docker pull svish07/xai-streamlit:latest &
+                docker pull redis:7 &
+                wait
+                
+                docker stop xai-api || true
+                docker rm xai-api || true
+                
+                docker stop xai-streamlit || true
+                docker rm xai-streamlit || true
+                
+                docker stop xai-redis || true
+                docker rm xai-redis || true
+                
+                docker network create xai-network || true
+                
+                docker run -d \
+                 --name xai-redis \
+                 --network xai-network \
+                 --restart always \
+                 redis:7
+                
+                sleep 5
+                
+                docker run -d \
+                 --name xai-api \
+                 --network xai-network \
+                 -p 8000:8000 \
+                 --restart always \
+                 --env REDIS_HOST=xai-redis \
+                 svish07/xai-api:latest
+                
                 docker logs xai-api
                 echo "Checking API..."
-  
+                
                 if docker exec xai-api curl --retry 10 --retry-delay 3 --retry-connrefused http://localhost:8000/; then
                   echo "API is ready!"
                 else
@@ -198,10 +195,12 @@ jobs:
                   docker logs xai-api
                   exit 1
                 fi
-
-               docker run -d \
-                --name xai-streamlit \
-                --network xai-network \
-                -p 8501:8501 \
-                --restart always \
-                svish07/xai-streamlit:latest
+                
+                docker run -d \
+                 --name xai-streamlit \
+                 --network xai-network \
+                 -p 8501:8501 \
+                 --restart always \
+                 svish07/xai-streamlit:latest
+                
+                exit 0   
