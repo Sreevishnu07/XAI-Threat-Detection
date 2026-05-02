@@ -149,7 +149,8 @@ jobs:
                cd ~
         
                docker container prune -f
-        
+               docker system prune -af
+               docker volume prune -f
                docker pull svish07/xai-api:latest &
                docker pull svish07/xai-streamlit:latest &
                docker pull redis:7 &
