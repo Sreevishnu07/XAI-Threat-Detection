@@ -144,6 +144,7 @@ jobs:
             host: ${{ secrets.EC2_HOST }}
             username: ${{ secrets.SERVER_USER }}
             key: ${{ secrets.SERVER_SSH_KEY }}
+            timeout: 30m
             script: |
                cd ~
         
@@ -182,11 +183,10 @@ jobs:
                 --env REDIS_HOST=xai-redis \
                 svish07/xai-api:latest
 
-                echo "Checking API..."
-
                 docker logs xai-api
-                
-                if curl --retry 10 --retry-delay 3 --retry-connrefused http://127.0.0.1:8000/; then
+                echo "Checking API..."
+  
+                if docker exec xai-api curl --retry 10 --retry-delay 3 --retry-connrefused http://localhost:8000/; then
                   echo "API is ready!"
                 else
                   echo "API not reachable"
