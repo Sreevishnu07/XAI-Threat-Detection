@@ -17,6 +17,8 @@ COPY app/requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --default-timeout=100 --retries 5 -r requirements.txt
 
+RUN python -c "import torch; from torchvision.models import resnet18, ResNet18_Weights; resnet18(weights=ResNet18_Weights.DEFAULT)"
+
 COPY app /app/app
 
 EXPOSE 8000
