@@ -182,12 +182,11 @@ jobs:
                 --env REDIS_HOST=xai-redis \
                 svish07/xai-api:latest
 
-                sleep 10
+                echo "Checking API..."
 
-               echo "Checking API..."
                 docker logs xai-api
                 
-                if curl -f http://127.0.0.1:8000/; then
+                if curl --retry 10 --retry-delay 3 --retry-connrefused http://127.0.0.1:8000/; then
                   echo "API is ready!"
                 else
                   echo "API not reachable"
