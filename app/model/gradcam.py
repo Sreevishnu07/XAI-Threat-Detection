@@ -6,6 +6,8 @@ from pytorch_grad_cam import GradCAMPlusPlus, ScoreCAM
 from pytorch_grad_cam.utils.image import show_cam_on_image
 from captum.attr import IntegratedGradients
 
+from app.model.threat import smoothgrad_integrated_gradients, normalize_ig_map
+
 
 def get_target_layer(model):
     return model.layer4[-1]
@@ -60,13 +62,15 @@ def generate_xai_maps(model, input_tensor, image_np):
     score_img = show_cam_on_image(image_np, score_map, use_rgb=True)
     focus_scorecam = compute_focus_score(score_map)
 
-    ig_map = generate_integrated_gradients(model, input_tensor)
+    ig_map = smoothgrad_integrated_gradients(
+        model,
+        input_tensor,
+        generate_integrated_gradients,
+        n_samples=15,
+        noise_sigma=0.05
+    )
 
-    low = np.percentile(ig_map, 3)
-    high = np.percentile(ig_map, 97)
-    ig_map = np.clip((ig_map - low) / (high - low + 1e-8), 0, 1)
-
-    ig_map = np.power(ig_map, 1.5)
+    ig_map = normalize_ig_map(ig_map)
 
     ig_uint8 = (ig_map * 255).astype(np.uint8)
     ig_uint8 = cv2.medianBlur(ig_uint8, 5)
@@ -80,11 +84,13 @@ def generate_xai_maps(model, input_tensor, image_np):
         "gradcam_pp": cam_pp_img,
         "scorecam": score_img,
         "integrated_gradients": ig_img,
-        "maps": {  
-        "gradcam_pp": cam_pp_map,
-        "scorecam": score_map,
-        "integrated_gradients": ig_map
+
+        "maps": {
+            "gradcam_pp": cam_pp_map,
+            "scorecam": score_map,
+            "integrated_gradients": ig_map
         },
+
         "focus_scores": {
             "gradcam_pp": focus_pp,
             "scorecam": focus_scorecam,
