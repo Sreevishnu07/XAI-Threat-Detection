@@ -37,6 +37,7 @@ st.markdown('<div class="title">XAI Threat Intelligence System</div>', unsafe_al
 
 uploaded_file = st.file_uploader("Upload Image", type=["jpg", "png", "jpeg"])
 
+
 def create_pdf(data):
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer)
@@ -76,6 +77,7 @@ def create_pdf(data):
     buffer.seek(0)
     return buffer
 
+
 if uploaded_file:
     st.image(uploaded_file, caption="Original Image", use_column_width=True)
 
@@ -92,7 +94,7 @@ if uploaded_file:
                         "image/jpeg"
                     )
                 },
-                timeout=120
+                timeout=300  # increased from 120
             )
 
             if response.status_code != 200:
