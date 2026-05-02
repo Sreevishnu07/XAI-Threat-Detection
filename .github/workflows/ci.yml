@@ -147,7 +147,11 @@ jobs:
             timeout: 30m
             script: |
                cd ~
-        
+               sudo systemctl stop docker
+
+               sudo rm -rf /var/lib/docker
+
+               sudo systemctl start docker
                docker container prune -f
                docker system prune -af
                docker volume prune -f
