@@ -113,8 +113,15 @@ async def predict_xai(file: UploadFile = File(...)):
         ig = xai_results["integrated_gradients"]
         focus_scores = xai_results["focus_scores"]
 
+        maps = xai_results["maps"]
+
         threat_score, consistency = compute_threat_score(
-            confidence, focus_scores, label
+            confidence,
+            focus_scores,
+            label,
+            maps["gradcam_pp"],
+            maps["scorecam"],
+            maps["integrated_gradients"]
         )
 
         threat_level = get_threat_level(threat_score)
