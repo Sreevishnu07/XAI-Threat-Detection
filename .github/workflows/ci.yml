@@ -149,9 +149,11 @@ jobs:
         
                docker container prune -f
         
-               docker pull svish07/xai-api:latest
-               docker pull svish07/xai-streamlit:latest
-               docker pull redis:7
+               docker pull svish07/xai-api:latest &
+               docker pull svish07/xai-streamlit:latest &
+               docker pull redis:7 &
+
+               wait
         
                docker stop xai-api || true
                docker rm xai-api || true
