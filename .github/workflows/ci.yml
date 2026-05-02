@@ -135,62 +135,54 @@ jobs:
     needs: push
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-
-      - name: Copy docker-compose.yml to EC2
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "docker-compose.prod.yml"
-          target: "~/"
-
-      - name: Deploy using Docker Compose
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            cd ~
-            
-            docker container prune -f
-            
-            docker pull svish07/xai-api:latest
-            docker pull svish07/xai-streamlit:latest
-            docker pull redis:7
-            
-            docker stop xai-api || true
-            docker rm xai-api || true
-            
-            docker stop xai-streamlit || true
-            docker rm xai-streamlit || true
-            
-            docker stop xai-redis || true
-            docker rm xai-redis || true
-            
-            docker network create xai-network || true
-            
-            docker run -d \
-              --name xai-redis \
-              --network xai-network \
-              --restart always \
-              redis:7
-            
-            sleep 5
-            
-            docker run -d \
-              --name xai-api \
-              --network xai-network \
-              -p 8000:8000 \
-              --restart always \
-              svish07/xai-api:latest
-            
-            docker run -d \
-              --name xai-streamlit \
-              --network xai-network \
-              -p 8501:8501 \
-              --restart always \
-              svish07/xai-streamlit:latest
+        - name: Checkout repo
+          uses: actions/checkout@v3
+  
+        - name: Deploy using Docker Run
+          uses: appleboy/ssh-action@v1.0.0
+          with:
+            host: ${{ secrets.EC2_HOST }}
+            username: ${{ secrets.SERVER_USER }}
+            key: ${{ secrets.SERVER_SSH_KEY }}
+            script: |
+               cd ~
+        
+               docker container prune -f
+        
+               docker pull svish07/xai-api:latest
+               docker pull svish07/xai-streamlit:latest
+               docker pull redis:7
+        
+               docker stop xai-api || true
+               docker rm xai-api || true
+        
+               docker stop xai-streamlit || true
+               docker rm xai-streamlit || true
+        
+               docker stop xai-redis || true
+               docker rm xai-redis || true
+        
+               docker network create xai-network || true
+        
+               docker run -d \
+                --name xai-redis \
+                --network xai-network \
+                --restart always \
+                redis:7
+        
+               sleep 5
+        
+               docker run -d \
+                --name xai-api \
+                --network xai-network \
+                -p 8000:8000 \
+                --restart always \
+                --env REDIS_HOST=xai-redis \
+                svish07/xai-api:latest
+        
+               docker run -d \
+                --name xai-streamlit \
+                --network xai-network \
+                -p 8501:8501 \
+                --restart always \
+                svish07/xai-streamlit:latest
