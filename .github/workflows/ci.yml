@@ -148,9 +148,12 @@ jobs:
             script: |
                cd ~
 
-                docker rmi svish07/xai-api:latest || true
-                docker rmi svish07/xai-streamlit:latest || true
-                
+               docker stop xai-api xai-streamlit xai-redis || true
+               docker rm xai-api xai-streamlit xai-redis || true
+
+               docker rmi svish07/xai-api:latest || true
+               docker rmi svish07/xai-streamlit:latest || true
+
                 docker pull svish07/xai-api:latest &
                 docker pull svish07/xai-streamlit:latest &
                 docker pull redis:7 &
