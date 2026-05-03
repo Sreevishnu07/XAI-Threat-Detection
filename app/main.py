@@ -32,7 +32,7 @@ app.add_middleware(
 model = load_model()
 
 try:
-    redis_client = redis.Redis(host="redis", port=6379, decode_responses=True)
+    redis_client = redis.Redis(host="xai-redis", port=6379, decode_responses=True)
     redis_client.ping()
 except:
     redis_client = None
