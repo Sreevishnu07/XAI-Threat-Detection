@@ -29,7 +29,7 @@ def generate_integrated_gradients(model, input_tensor):
         input_tensor,
         baselines=baseline,
         target=target_class,
-        n_steps=20  # reduced from 50
+        n_steps=20  
     )
     attr = attributions.squeeze().detach().cpu().numpy()
     attr = np.abs(attr)
@@ -48,7 +48,6 @@ def generate_xai_maps(model, input_tensor, image_np):
     cam_pp_img = show_cam_on_image(image_np, cam_pp_map, use_rgb=True)
     focus_pp = compute_focus_score(cam_pp_map)
 
-    # ScoreCAM disabled - too slow on CPU, reusing GradCAM++ result
     score_img = cam_pp_img
     score_map = cam_pp_map
     focus_scorecam = focus_pp
