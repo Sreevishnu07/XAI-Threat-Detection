@@ -136,10 +136,9 @@ def smoothgrad_integrated_gradients(model,
         noise = torch.randn_like(input_tensor) * noise_sigma
         noisy_input = input_tensor + noise
 
-        # keep valid pixel range
         noisy_input = torch.clamp(noisy_input, 0, 1)
 
-        ig = generate_ig_fn(model, noisy_input)  # your existing IG function
+        ig = generate_ig_fn(model, noisy_input)  
 
         if isinstance(ig, torch.Tensor):
             ig = ig.detach().cpu().numpy()
