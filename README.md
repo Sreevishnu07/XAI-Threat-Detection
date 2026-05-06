@@ -1,190 +1,253 @@
 # XAI Threat Intelligence System
 
-A **production-grade Explainable AI system** that detects potential threats in images and provides **visual + quantitative explanations**, built using a **microservices architecture, Redis caching, and CI/CD pipeline**.
+A **production-grade Explainable AI system** that detects potential threats in images and provides **visual + quantitative explanations**, built using a **scalable microservices architecture, Redis caching, CI/CD automation, and cloud deployment**.
 
 ---
 
-## Why this project stands out
+## Why This Project Is Different
 
-This is not just a machine learning model — it is a **complete ML system** designed like real-world products:
+This is **not just a model** — it is a **complete, production-style ML system** designed with real-world engineering constraints:
 
-- Explainable AI (GradCAM++, ScoreCAM, Integrated Gradients)
-- Redis caching for faster repeated inference
-- Fully containerized microservices (Docker + Compose)
-- CI/CD pipeline that builds, tests, and runs the entire system
-- Interactive UI with explainability flow + metrics
-- Auto-generated JSON + PDF reports
+- Explainable AI as a **first-class component**
+- Redis caching for **low-latency inference**
+- Microservices architecture (**API + UI + Cache separation**)
+- Fully containerized system (**Docker + Compose**)
+- End-to-end **CI/CD pipeline**
+- **Cloud deployment on AWS EC2**
+- Interactive UI with explainability + metrics
+- Auto-generated **JSON + PDF reports**
 
 ---
 
-## What it does
+## What the System Does
 
-Given an image, the system:
+Given an input image, the system performs:
 
-1. Predicts the object (e.g., *revolver, knife, dog*)
-2. Calculates:
-   - Confidence
-   - Threat score
-   - Trust score (consistency across XAI methods)
-3. Generates:
-   - GradCAM++
-   - ScoreCAM
-   - Integrated Gradients
-4. Produces:
-   - Human-readable explanation
-   - Visual explainability maps
-   - Downloadable reports
+### 1. Prediction
+- Detects object (e.g., *revolver, knife, dog*)
 
+### 2. Quantitative Analysis
+- **Confidence Score**
+- **Threat Score**
+- **Trust Score** (cross-method consistency)
+
+### 3. Explainability Generation
+- GradCAM++
+- ScoreCAM
+- Integrated Gradients
+
+### 4. Output
+- Human-readable explanation
+- Visual heatmaps
+- Structured reports (JSON + PDF)
 ---
 
 ## System Architecture
 
-```
 User → Streamlit UI → FastAPI API → ML Model + XAI → Redis Cache
-```
 
 ---
 
-## Microservices Architecture
+## Microservices Breakdown
 
-| Service     | Role |
-|------------|------|
-| API        | Model inference + XAI + scoring |
-| Streamlit  | UI + visualization |
-| Redis      | Caching repeated predictions |
+| Service    | Responsibility                          |
+|------------|-----------------------------------------|
+| API        | Model inference, XAI, scoring engine    |
+| Streamlit  | UI, visualization, report download      |
+| Redis      | Caching repeated predictions            |
 
 ---
 
 ## Tech Stack
 
-**Backend:** FastAPI, PyTorch, OpenCV, NumPy  
-**Frontend:** Streamlit  
-**Explainability:** GradCAM++, ScoreCAM, Integrated Gradients  
-**DevOps:** Docker, Docker Compose, GitHub Actions CI/CD, Redis  
+**Backend**
+- FastAPI
+- PyTorch
+- OpenCV
+- NumPy
+
+**Frontend**
+- Streamlit
+
+**Explainability**
+- GradCAM++
+- ScoreCAM
+- Integrated Gradients
+
+**DevOps & Infra**
+- Docker
+- Docker Compose
+- GitHub Actions (CI/CD)
+- Redis
+- AWS EC2
+
+---
+
+## Core System Features
+
+### Explainability Flow
+
+GradCAM++ → ScoreCAM → Integrated Gradients
+
+### Attention Analysis
+- Quantifies where the model is focusing
+- Measures consistency across XAI methods
+
+### Threat Intelligence Engine
+
+Combines:
+- Model confidence
+- Attention focus
+- Label risk level
+- Cross-method consistency
+
+---
+
+## Redis Caching Layer
+
+- Eliminates redundant inference
+- Instant response for repeated inputs
+- Automatic cache detection
+
+**UI Indicators:**
+- Fresh inference
+- Served from cache
+
+---
+
+## Report Generation
+
+- **JSON report** — structured data
+- **PDF report** — includes prediction, metrics, explanation, and visual maps
+
+---
+
+## Cloud Deployment (AWS EC2)
+
+The system is deployed on **AWS EC2**, simulating real production infrastructure:
+
+- Hosted multi-container system on EC2 instance
+- Managed container networking across services
+- Exposed API and UI endpoints
+- Solved real-world issues:
+  - Port conflicts
+  - Docker networking
+  - Resource constraints (free-tier optimization)
+
+---
+
+## CI/CD Pipeline (GitHub Actions)
+
+Automated pipeline that:
+
+- Installs dependencies
+- Runs unit tests
+- Builds Docker images
+- Spins up full system (API + UI + Redis)
+- Performs health checks
+
+This ensures:
+- Code reliability
+- Reproducible builds
+- Production readiness
+
+---
+
+## Running Locally
+
+### 1. Clone the repo
+
+    git clone https://github.com/your-username/XAI-Threat-Detection.git
+    cd XAI-Threat-Detection
+
+### 2. Run with Docker
+
+    docker compose up --build
+
+### 3. Access services
+
+- UI → http://localhost:8501
+- API → http://localhost:8000
+
+---
+
+## Running Tests
+
+    pytest
 
 ---
 
 ## Project Structure
 
-```
-XAI-Threat-Detection/
-│
-├── app/
-│   ├── model/
-│   │   ├── model.py
-│   │   ├── gradcam.py
-│   │   ├── threat.py
-│   │   └── explainer.py
-│   ├── main.py
-│   └── Dockerfile
-│
-├── streamlit/
-│   ├── streamlit_app.py
-│   ├── requirements.txt
-│   └── Dockerfile
-│
-├── tests/
-├── docker-compose.yml
-├── requirements.txt
-└── .github/workflows/ci.yml
-```
+    XAI-Threat-Detection/
+    │
+    ├── app/
+    │   ├── model/
+    │   │   ├── model.py
+    │   │   ├── gradcam.py
+    │   │   ├── threat.py
+    │   │   └── explainer.py
+    │   ├── main.py
+    │   └── Dockerfile
+    │
+    ├── streamlit/
+    │   ├── streamlit_app.py
+    │   ├── requirements.txt
+    │   └── Dockerfile
+    │
+    ├── tests/
+    ├── docker-compose.yml
+    ├── requirements.txt
+    └── .github/workflows/ci.yml
 
----
+    ---
 
-## Features
+## Engineering Depth & Challenges Solved
 
-### Explainability Flow
-GradCAM++ → ScoreCAM → Integrated Gradients
+This project reflects **real-world system engineering**, not just ML:
 
-### Attention Analysis
-- Quantifies model focus  
-- Measures consistency across methods  
+### Docker & System Design
+- Fixed Docker build context issues
+- Managed multi-container communication
+- Handled dependency isolation
 
-### Threat Intelligence Engine
-Combines:
-- Confidence  
-- Focus  
-- Label risk  
-- Consistency  
+### Networking
+- Solved inter-container communication
+- API ↔ UI ↔ Redis integration
 
-### Redis Caching
-- Instant response for repeated inputs  
-- Detects cached results automatically  
-- UI indicates:
-  - Fresh inference  
-  - Served from cache  
+### CI/CD Debugging
+- Resolved environment mismatches between local & CI
+- Ensured reproducible builds
 
-### Report Generation
-- JSON report  
-- PDF report with prediction, metrics, explanation, and maps  
-
----
-
-## Getting Started
-
-### 1. Clone the repo
-```bash
-git clone https://github.com/your-username/XAI-Threat-Detection.git
-cd XAI-Threat-Detection
-```
-
-### 2. Run with Docker
-```bash
-docker compose up --build
-```
-
-### 3. Access
-- UI → http://localhost:8501  
-- API → http://localhost:8000  
-
----
-
-## Running Tests
-```bash
-pytest
-```
-
----
-
-## CI/CD Pipeline
-
-GitHub Actions automatically:
-- Installs dependencies  
-- Runs tests  
-- Builds Docker images  
-- Starts full system (API + Streamlit + Redis)  
-- Performs health checks  
-
----
-
-## Key Engineering Highlights
-
-- Designed a **microservice-based ML system**
-- Built **explainability-first architecture**
-- Integrated **Redis caching for performance**
-- Solved real-world DevOps challenges:
-  - Docker build context issues  
-  - Container networking  
-  - CI environment differences  
-- Implemented a **production-style CI/CD pipeline**
+### Performance Optimization
+- Introduced Redis caching
+- Reduced redundant computation
 
 ---
 
 ## Future Improvements
 
-- Cloud deployment (AWS / Render / Railway)  
-- Authentication & logging  
-- Real-time video inference  
-- Kubernetes scaling  
+- Kubernetes-based scaling
+- Authentication & logging layer
+- Real-time video threat detection
+- Monitoring & observability (Prometheus/Grafana)
 
 ---
 
 ## Contribution
 
-Open to improvements, ideas, and collaborations.
+Open to ideas, improvements, and collaborations.
 
 ---
 
-## Authored By Sree Vishnu
+## Author
 
-Built with a focus on **Machine Learning + Systems + DevOps integration** — not just model accuracy.
+**Sree Vishnu**
+
+Built with a focus on: **Machine Learning + Systems Design + DevOps Integration**
+
+---
+
+## Philosophy
+
+> A strong ML engineer doesn't just build models — they build systems that actually work in the real world.
